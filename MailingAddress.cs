@@ -45,7 +45,23 @@ namespace SharpNick
 		/// <returns></returns>
 		public override int GetHashCode()
 		{
-			return (Street1 + Street2 + City + State + Country + Postcode).ToLower().GetHashCode();
+			var compareKey = NeutralizeProperty(Street1) + NeutralizeProperty(Street2) +
+				NeutralizeProperty(City) + NeutralizeProperty(State) + NeutralizeProperty(Country)
+				+ NeutralizeProperty(Postcode);
+			return compareKey.GetHashCode();
+		}
+		/// <summary>
+		/// Removes extra spaces (including two or more consecutive spaces) and lower
+		/// case the input to facilitate instance comparisons. 
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		private string NeutralizeProperty(string input)
+		{
+			if (string.IsNullOrEmpty(input)) return string.Empty;
+			input = input.Trim();
+			if (input.Length == 0) return string.Empty;
+			return input.ConsolidateSpaces().ToLower();
 		}
 	}
 }
