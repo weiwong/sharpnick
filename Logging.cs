@@ -413,7 +413,15 @@ namespace SharpNick
 			using (conn)
 			{
 				conn.Open();
-				cmd.ExecuteNonQuery();
+
+				try
+				{
+					cmd.ExecuteNonQuery();
+				}
+				catch (Exception ex)
+				{
+					Logging.LogError(ex);
+				}
 			}
 		}
 		/// <summary>
@@ -512,9 +520,6 @@ namespace SharpNick
 			}
 
 			var cmd = conn.CreateCommand();
-			cmd.CommandText =
-				@"INSERT INTO UserSessions (sessionID, created, ip, userAgent, referrer, exclude)
-				VALUES (?sessionID, ?created, ?ip, ?userAgent, ?referrer, ?exclude);";
 
 			/// set the exclusion flag to true if the browser contains a Google Analytics
 			/// exclusion cookie. also get the referrer URL, if available
@@ -534,7 +539,17 @@ namespace SharpNick
 
 				try
 				{
-					cmd.ExecuteNonQuery();
+					/// make sure that there isn't already a session ID like the one we're inserting
+					cmd.CommandText = "SELECT COUNT(*) FROM UserSessions WHERE sessionID=?sessionID";
+					var result = cmd.ExecuteScalar();
+
+					if (result is DBNull || Convert.ToInt32(result) == 0)
+					{
+						cmd.CommandText =
+							@"INSERT INTO UserSessions (sessionID, created, ip, userAgent, referrer, exclude)
+								VALUES (?sessionID, ?created, ?ip, ?userAgent, ?referrer, ?exclude);";
+						cmd.ExecuteNonQuery();
+					}
 				}
 				catch (Exception ex)
 				{
