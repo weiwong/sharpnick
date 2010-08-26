@@ -36,6 +36,7 @@ CREATE TABLE  `UserErrors` (
   `valueEntered` varchar(100) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
+DROP TABLE IF EXISTS `UserSessions`;
 CREATE TABLE  `UserSessions` (
   `sessionID` varchar(45) NOT NULL,
   `created` datetime NOT NULL,
@@ -44,4 +45,12 @@ CREATE TABLE  `UserSessions` (
   `referrer` varchar(500) DEFAULT NULL,
   `exclude` tinyint(1) NOT NULL DEFAULT '0',
   KEY `SessionID_Index` (`sessionID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `UserSteps`;
+CREATE TABLE  `UserSteps` (
+  `sessionID` varchar(45) NOT NULL,
+  `created` datetime NOT NULL,
+  `stepName` varchar(45) NOT NULL,
+  PRIMARY KEY (`sessionID`,`created`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

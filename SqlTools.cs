@@ -86,7 +86,8 @@ namespace SharpNick
 		}
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, object value)
 		{
-			return CreateParameter(cmd, name, value.ToString(), DbType.String);
+			var stringValue = value == null ? null : value.ToString();
+			return CreateParameter(cmd, name, value, DbType.String);
 		}
 
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, int value)
