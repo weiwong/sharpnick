@@ -37,7 +37,7 @@ namespace SharpNick
 		/// </summary>
 		/// <param name="categoryName"></param>
 		/// <returns></returns>
-		public static string GetUrlFriendlyName(this string input)
+		public static string GetUrlFriendlyString(this string input)
 		{
 			if (string.IsNullOrEmpty(input)) return string.Empty;
 
@@ -114,7 +114,7 @@ namespace SharpNick
 		/// <param name="input"></param>
 		/// <param name="type">Optional. Specifies the card type to format the input to.</param>
 		/// <returns></returns>
-		public static string FormatCreditCardNumber(this string input, string type)
+		public static string FormatCreditCardNumber(this string input)
 		{
 			string sanitized = FilterNonDigits(input);
 
