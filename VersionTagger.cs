@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Web.Hosting;
 
 namespace SharpNick
 {
@@ -30,17 +32,21 @@ namespace SharpNick
 		/// </summary>
 		private long _Position;
 		/// <summary>
-		/// Mapping between JS and CSS file URLs and their versions.
+		/// Mapping between JS and CSS file URLs and their URLs with the version tag.
 		/// </summary>
-		private static Dictionary<string, int> _Versions;
+		private static Dictionary<string, string> _Versions;
 		/// <summary>
 		/// Multithreading lock to ensure that configuration is not loaded more than once.
 		/// </summary>
 		private static object _VersionsLock = new object();
 		/// <summary>
-		/// Regex to determine if a URL is requesting a CSS or JS file in a format that is tagged by the VersionTagger.
+		/// Mapping from version tagged file URLs to the non tagged versions.
 		/// </summary>
-		private static Regex _UrlIsCssJs = new Regex(@"^/(.+?)\.\d+\.(css|js)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static Dictionary<string, string> _Urls;
+		/// <summary>
+		/// List of file watchers.
+		/// </summary>
+		private static List<FileSystemWatcher> _Watchers;
 
 		/// <summary>
 		/// Creates an instance of the response filter.
@@ -61,18 +67,108 @@ namespace SharpNick
 			lock (_VersionsLock)
 			{
 				if (_Versions != null) return;
+				if (string.IsNullOrEmpty(HostingEnvironment.ApplicationPhysicalPath)) return;
 
-				_Versions = new Dictionary<string, int>();
 				var config = SharpNickConfiguration.GetConfig();
 
 				if (config != null && config.VersionTaggerConfig != null)
 				{
+					_Versions = new Dictionary<string, string>();
+					_Urls = new Dictionary<string, string>();
+					_Watchers = new List<FileSystemWatcher>();
+
 					foreach (VersionTaggerEntry entry in config.VersionTaggerConfig.Entries)
 					{
-						_Versions[entry.Url] = entry.Version;
+						/// get the version of the file
+						var version = GetVersion(entry);
+
+						/// if the version is valid for this file
+						if (!string.IsNullOrEmpty(version))
+						{
+							/// get the mapping for the before and after conversion, and vice
+							/// versa, in two different hash tables
+							var extension = entry.Url.Substring(entry.Url.LastIndexOf('.') + 1);
+							var replacement = string.Format("{0}{1}.{2}",
+								entry.Url.Remove(entry.Url.Length - extension.Length), version, extension);
+
+							_Versions[entry.Url] = replacement;
+							_Urls[replacement] = entry.Url;
+
+							/// monitor the file for changes
+							if (string.IsNullOrEmpty(entry.Version)) WatchFile(entry.Url);
+						}
 					}
+
+					/// clean up this class when the application shuts down
+					AppDomain.CurrentDomain.DomainUnload += new EventHandler(CurrentDomain_DomainUnload);
 				}
 			}
+		}
+		/// <summary>
+		/// Cleans up this class when the application shuts down.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private static void CurrentDomain_DomainUnload(object sender, EventArgs e)
+		{
+			try
+			{
+				foreach (var watcher in _Watchers)
+				{
+					watcher.Dispose();
+				}
+			}
+			catch { }
+		}
+		/// <summary>
+		/// Watches a file and invalidates the cache if any of them changed.
+		/// </summary>
+		/// <param name="url"></param>
+		private static void WatchFile(string url)
+		{
+			var filePath = HostingEnvironment.MapPath(url);
+			var file = new FileInfo(filePath);
+
+			var result = new FileSystemWatcher(file.DirectoryName);
+			result.Filter = file.Name;
+			result.NotifyFilter = NotifyFilters.LastWrite;
+			result.Changed += new FileSystemEventHandler(File_Changed);
+			
+			result.EnableRaisingEvents = true;
+			_Watchers.Add(result);
+		}
+		/// <summary>
+		/// Handle the event when any files have changed.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private static void File_Changed(object sender, FileSystemEventArgs e)
+		{
+			lock (_VersionsLock) _Versions = null;
+		}
+		/// <summary>
+		/// Gets the version for the file in this entry.
+		/// </summary>
+		/// <param name="entry"></param>
+		/// <returns></returns>
+		private static string GetVersion(VersionTaggerEntry entry)
+		{
+			/// try to get the version number from the configuration, if available
+			var filePath = HostingEnvironment.MapPath(entry.Url);
+			if (!File.Exists(filePath)) return null;
+			if (!string.IsNullOrEmpty(entry.Version)) return entry.Version;
+
+			/// otherwise, get the hash code for the file
+			byte[] fileContents;
+			var fileInfo = new FileInfo(filePath);
+
+			using (var stream = new FileStream(filePath, FileMode.Open))
+			using (var reader = new BinaryReader(stream))
+			{
+				fileContents = reader.ReadBytes((int)fileInfo.Length);
+			}
+
+			return MurmurHash2.Hash(fileContents).ToString("x");
 		}
 		/// <summary>
 		/// Rewrites the request's path to the underlying JS or CSS file.
@@ -81,8 +177,8 @@ namespace SharpNick
 		public static void Rewrite(HttpContext context)
 		{
 			var url = context.Request.RawUrl;
-			var match = _UrlIsCssJs.Match(url);
-			if (match.Success) context.RewritePath(string.Format("/{0}.{1}", match.Groups[1].Value, match.Groups[2].Value));
+			string actualUrl;
+			if (_Urls.TryGetValue(url, out actualUrl)) context.RewritePath(actualUrl);
 		}
 
 		#region Filter overrides
@@ -159,18 +255,79 @@ namespace SharpNick
 			foreach (string url in _Versions.Keys)
 			{
 				string extension = url.Substring(url.LastIndexOf('.') + 1);
-				string replacement = string.Format("{0}{1}.{2}",
-					url.Remove(url.Length - extension.Length), _Versions[url], extension);
 
 				/// use different replacement methods for different files
 				/// as their inclusion methods are different
-				if (string.Compare(extension, "css", true) == 0) html = html.Replace("href=\"" + url + "\"", "href=\"" + replacement + "\"");
-				if (string.Compare(extension, "js", true) == 0) html = html.Replace("src=\"" + url + "\"", "src=\"" + replacement + "\"");
+				if (string.Compare(extension, "css", true) == 0) html = html.Replace("href=\"" + url + "\"", "href=\"" + _Versions[url] + "\"");
+				else if (string.Compare(extension, "js", true) == 0) html = html.Replace("src=\"" + url + "\"", "src=\"" + _Versions[url] + "\"");
 			}
 
 			byte[] output = _Encoding.GetBytes(html);
 
 			_ResponseStream.Write(output, offset, output.Length);
+		}
+		/// <summary>
+		/// Hash algorithm using MurmurHash. Credit to Davy Landman.
+		/// http://landman-code.blogspot.com/2009/02/c-superfasthash-and-murmurhash2.html
+		/// </summary>
+		private class MurmurHash2
+		{
+			private const UInt32 m = 0x5bd1e995;
+			private const Int32 r = 24;
+
+			public static UInt32 Hash(byte[] data)
+			{
+				return Hash(data, 0xc58f1a7b);
+			}
+
+			public static UInt32 Hash(byte[] data, UInt32 seed)
+			{
+				var length = data.Length;
+				if (length == 0) return 0;
+
+				var h = seed ^ (UInt32)length;
+				var currentIndex = 0;
+
+				while (length >= 4)
+				{
+					var k = (UInt32)(data[currentIndex++] | data[currentIndex++] << 8 | data[currentIndex++] << 16 | data[currentIndex++] << 24);
+					k *= m;
+					k ^= k >> r;
+					k *= m;
+
+					h *= m;
+					h ^= k;
+					length -= 4;
+				}
+
+				switch (length)
+				{
+					case 3:
+						h ^= (UInt16)(data[currentIndex++] | data[currentIndex++] << 8);
+						h ^= (UInt32)(data[currentIndex] << 16);
+						h *= m;
+						break;
+					case 2:
+						h ^= (UInt16)(data[currentIndex++] | data[currentIndex] << 8);
+						h *= m;
+						break;
+					case 1:
+						h ^= data[currentIndex];
+						h *= m;
+						break;
+					default:
+						break;
+				}
+
+				// Do a few final mixes of the hash to ensure the last few
+				// bytes are well-incorporated.
+
+				h ^= h >> 13;
+				h *= m;
+				h ^= h >> 15;
+
+				return h;
+			}
 		}
 	}
 	/// <summary>
@@ -203,10 +360,10 @@ namespace SharpNick
 		/// <summary>
 		/// Gets the version for the file as represented by this url.
 		/// </summary>
-		[ConfigurationProperty("version", IsRequired = true)]
-		public int Version
+		[ConfigurationProperty("version")]
+		public string Version
 		{
-			get { return (int)this["version"]; }
+			get { return (string)this["version"]; }
 		}
 	}
 	/// <summary>
