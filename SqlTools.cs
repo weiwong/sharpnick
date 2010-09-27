@@ -21,6 +21,17 @@ namespace SharpNick
 			return reader.GetString(index);
 		}
 		/// <summary>
+		/// Gets the Decimal value for the scalar value returned by the DbCommand instance.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <returns></returns>
+		public static string GetString(DbCommand cmd)
+		{
+			var result = cmd.ExecuteScalar();
+			if (result is DBNull || result == null) return string.Empty;
+			return Convert.ToString(result);
+		}
+		/// <summary>
 		/// Gets the Int32 value at the specified index of a data reader. If DBNull, returns 0.
 		/// </summary>
 		/// <param name="reader"></param>
@@ -30,6 +41,17 @@ namespace SharpNick
 		{
 			if (reader.IsDBNull(index)) return default(int);
 			return reader.GetInt32(index);
+		}
+		/// <summary>
+		/// Gets the Int32 value for the scalar value returned by the DbCommand instance.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <returns></returns>
+		public static int GetInt32(DbCommand cmd)
+		{
+			var result = cmd.ExecuteScalar();
+			if (result is DBNull || result == null) return 0;
+			return Convert.ToInt32(result);
 		}
 		/// <summary>
 		/// Gets the date/time value at the specified index of a data reader. If DBNull, returns DateTime.MinValue.
@@ -43,6 +65,17 @@ namespace SharpNick
 			return reader.GetDateTime(index);
 		}
 		/// <summary>
+		/// Gets the Decimal value for the scalar value returned by the DbCommand instance.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <returns></returns>
+		public static DateTime GetDateTime(DbCommand cmd)
+		{
+			var result = cmd.ExecuteScalar();
+			if (result is DBNull || result == null) return DateTime.MinValue;
+			return Convert.ToDateTime(result);
+		}
+		/// <summary>
 		/// Gets the boolean value at the specified index of a data reader. If DBNull, returns false.
 		/// </summary>
 		/// <param name="reader"></param>
@@ -54,6 +87,17 @@ namespace SharpNick
 			return reader.GetBoolean(index);
 		}
 		/// <summary>
+		/// Gets the Decimal value for the scalar value returned by the DbCommand instance.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <returns></returns>
+		public static bool GetBoolean(DbCommand cmd)
+		{
+			var result = cmd.ExecuteScalar();
+			if (result is DBNull || result == null) return false;
+			return Convert.ToBoolean(result);
+		}
+		/// <summary>
 		/// Gets the Decimal value at the specified index of a data reader. If DBNull, returns 0.
 		/// </summary>
 		/// <param name="reader"></param>
@@ -63,6 +107,28 @@ namespace SharpNick
 		{
 			if (reader.IsDBNull(index)) return default(decimal);
 			return reader.GetDecimal(index);
+		}
+		/// <summary>
+		/// Gets the Decimal value for the scalar value returned by the DbCommand instance.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <returns></returns>
+		public static decimal GetDecimal(DbCommand cmd)
+		{
+			var result = cmd.ExecuteScalar();
+			if (result is DBNull || result == null) return 0;
+			return Convert.ToDecimal(result);
+		}
+		/// <summary>
+		/// Executes a short query, not expecting any results from the query.
+		/// </summary>
+		/// <param name="connection"></param>
+		/// <param name="command"></param>
+		public static void ExecuteNonQuery(DbConnection connection, string command)
+		{
+			var cmd = connection.CreateCommand();
+			cmd.CommandText = command;
+			cmd.ExecuteNonQuery();
 		}
 
 		private static DbParameter CreateParameter(DbCommand cmd, string name, object value, DbType dbType)
