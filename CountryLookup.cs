@@ -8,7 +8,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Web.Hosting;
-using System.Reflection;
 
 namespace SharpNick
 {
@@ -128,8 +127,17 @@ namespace SharpNick
 				if (_IsReady) return;
 
 				_LicenseKey = GetLicenseKey();
-				var newFile = EnsureFileAvailable();
-				OpenFile();
+
+				bool newFile = false;
+				try
+				{
+					newFile = EnsureFileAvailable();
+					OpenFile();
+				}
+				catch (Exception ex)
+				{
+					Logging.LogError("CountryLookup", ex);
+				}
 
 				/// bind event to close file
 				if (_DomainUnloadEventHandler == null)
@@ -200,7 +208,11 @@ namespace SharpNick
 		private static string GetLicenseKey()
 		{
 			var config = SharpNickConfiguration.GetConfig();
-			if (config == null || config.CountryLookupConfig == null) return null;
+			if (config == null || config.CountryLookupConfig == null || string.IsNullOrEmpty(config.CountryLookupConfig.MaxMindLicenseKey))
+			{
+				throw new ConfigurationErrorsException("Use of CountryLookup requires a MaxMind license key configured, but is not supplied.");
+			}
+
 			return config.CountryLookupConfig.MaxMindLicenseKey;
 		}
 		/// <summary>
@@ -237,14 +249,7 @@ namespace SharpNick
 		/// <returns></returns>
 		public static string GetCountryCode(string ip)
 		{
-			try
-			{
-				return GetCountryCode(IPAddress.Parse(ip));
-			}
-			catch
-			{
-				return null;
-			}
+			return GetCountryCode(IPAddress.Parse(ip));
 		}
 		/// <summary>
 		/// Converts an IP address into a number.
@@ -282,14 +287,7 @@ namespace SharpNick
 		/// <returns></returns>
 		public static string GetCountryName(string ip)
 		{
-			try
-			{
-				return GetCountryName(IPAddress.Parse(ip));
-			}
-			catch
-			{
-				return null;
-			}
+			return GetCountryName(IPAddress.Parse(ip));
 		}
 		/// <summary>
 		/// Gets the country name corrresponding to the specified IPAddress instance.
