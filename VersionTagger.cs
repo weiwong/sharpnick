@@ -17,7 +17,7 @@ namespace SharpNick
 	/// How to Use:
 	/// 
 	/// Wire up in Global.asax:
-	/// void Application_PreRequestHandlerExecute(object sender, EventArgs e)
+	/// void Application_BeginRequest(object sender, EventArgs e)
 	/// {
 	///     if (Request.Url.LocalPath.EndsWith(".aspx")) Response.Filter = new VersionTagger(Response);
 	///     else VersionTagger.Rewrit(Context);
@@ -81,6 +81,7 @@ namespace SharpNick
 					{
 						/// get the version of the file
 						var version = GetVersion(entry);
+						Logging.Trace("Version is " + version, "VersionTagger");
 
 						/// if the version is valid for this file
 						if (!string.IsNullOrEmpty(version))
@@ -101,6 +102,10 @@ namespace SharpNick
 
 					/// clean up this class when the application shuts down
 					AppDomain.CurrentDomain.DomainUnload += new EventHandler(CurrentDomain_DomainUnload);
+				}
+				else
+				{
+					throw new ConfigurationErrorsException("Configuration for VersionTagger cannot be found.");
 				}
 			}
 		}
@@ -155,17 +160,17 @@ namespace SharpNick
 		{
 			/// try to get the version number from the configuration, if available
 			var filePath = HostingEnvironment.MapPath(entry.Url);
-			if (!File.Exists(filePath)) return null;
+			if (!File.Exists(filePath)) throw new ConfigurationErrorsException(filePath + " cannot be found");
 			if (!string.IsNullOrEmpty(entry.Version)) return entry.Version;
 
 			/// otherwise, get the hash code for the file
 			byte[] fileContents;
-			var fileInfo = new FileInfo(filePath);
+			var fileLength = (int)(new FileInfo(filePath).Length);
 
 			using (var stream = new FileStream(filePath, FileMode.Open))
 			using (var reader = new BinaryReader(stream))
 			{
-				fileContents = reader.ReadBytes((int)fileInfo.Length);
+				fileContents = reader.ReadBytes(fileLength);
 			}
 
 			return MurmurHash2.Hash(fileContents).ToString("x");
@@ -176,6 +181,7 @@ namespace SharpNick
 		/// <param name="context"></param>
 		public static void Rewrite(HttpContext context)
 		{
+			EnsureReady();
 			var url = context.Request.RawUrl;
 			string actualUrl;
 			if (_Urls.TryGetValue(url, out actualUrl)) context.RewritePath(actualUrl);
