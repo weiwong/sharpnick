@@ -118,7 +118,7 @@ namespace SharpNick.PingMachine
 					request.Credentials = _Credentials;
 					request.Timeout = _PingTimeOut * 1000;
 
-					var response = (HttpWebResponse)request.GetResponse();
+					var response = request.GetResponse();
 					response.Close();
 				}
 			}
