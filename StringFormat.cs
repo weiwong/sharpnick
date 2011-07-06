@@ -26,7 +26,7 @@ namespace SharpNick
 		/// <summary>
 		/// Regex instance that determines if a string is a valid email.
 		/// </summary>
-		private static readonly Regex EmailRegex = new Regex(@"^[-_a-z0-9'+*$^&%=~!?{}]+(?:\.[-_a-z0-9'+*$^&%=~!?{}]+)*@(?:(?![-.])[-a-z0-9.]+(?<![-.])\.[a-z]{2,6}|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$", RegexOptions.Compiled);
+		private static readonly Regex EmailRegex = new Regex(@"^[-_a-z0-9'+*$^&%=~!?{}]+(?:\.[-_a-z0-9'+*$^&%=~!?{}]+)*@(?:(?![-.])[-a-z0-9.]+(?<![-.])\.[a-z]{2,6}|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		/// <summary>
 		/// Regex instance that finds string sequence of two or more space characters.
 		/// </summary>
