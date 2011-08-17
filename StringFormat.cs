@@ -69,8 +69,21 @@ namespace SharpNick
 		/// <returns></returns>
 		public static string ReplaceSymbols(this string input, string replacement)
 		{
+			return ReplaceSymbols(input, replacement, false);
+		}
+		/// <summary>
+		/// Replaces any non-alphanumeric characters in a string with a specified
+		/// replacement string, with an option to leave spaces as they are.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="replacement"></param>
+		/// <returns></returns>
+		public static string ReplaceSymbols(this string input, string replacement, bool ignoreSpaces)
+		{
 			if (string.IsNullOrEmpty(input)) return string.Empty;
-			return Regex.Replace(input, @"[^a-zA-Z\d]", replacement);
+
+			var regex = ignoreSpaces ? @"[^a-zA-Z\d\s]" : @"[^a-zA-Z\d]";
+			return Regex.Replace(input, regex, replacement);
 		}
 		/// <summary>
 		/// Encodes a string so that it can be displayed into a HTML page
