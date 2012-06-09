@@ -246,7 +246,7 @@ namespace SharpNick
 
 			try
 			{
-				if (context == null)
+				if (context == null || context.Request == null)
 				{
 					Trace(message, category, null);
 				}
