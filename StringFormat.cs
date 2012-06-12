@@ -378,14 +378,14 @@ namespace SharpNick
 		public static string GetFirstSentence(this string input, int numberOfSentences)
 		{
 			if (string.IsNullOrEmpty(input)) return string.Empty;
-			if (input.IndexOf(".") == input.Length - 1) return input;
+			if (input.IndexOfAny(new char[] { '.', '!', '?' }) == input.Length - 1) return input;
 
 			int index = 0;
 			int count = 0;
 			while (index <= input.Length)
 			{
 				/// find the first period after the last period found
-				index = input.IndexOf(".", index + 1);
+				index = input.IndexOfAny(new char[] { '.', '!', '?' }, index + 1);
 				if (index == -1) break;
 
 				/// test to see if the period is just an abbreviation
