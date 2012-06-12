@@ -31,6 +31,11 @@ namespace SharpNick
 		{
 			get { return this["sslRedirects"] as SslRedirectConfig; }
 		}
+		[ConfigurationProperty("universalLogin")]
+		public UniversalLoginConfig UniversalLoginConfig
+		{
+			get { return this["universalLogin"] as UniversalLoginConfig; }
+		}
 		public static SharpNickConfiguration GetConfig()
 		{
 			return ConfigurationManager.GetSection("sharpNick") as SharpNickConfiguration;

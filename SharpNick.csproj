@@ -80,6 +80,11 @@
     <Compile Include="Logging.cs" />
     <Compile Include="PingMachine\Pinger.cs" />
     <Compile Include="PingMachine\PingMachineConfig.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ScriptDeferFilter.cs" />
     <Compile Include="SharpNickConfiguration.cs" />
     <Compile Include="SqlTools.cs" />
@@ -92,6 +97,7 @@
     <Compile Include="SslRedirect\SslRedirectRule.cs" />
     <Compile Include="SslRedirect\SslRedirectRuleConfig.cs" />
     <Compile Include="StringFormat.cs" />
+    <Compile Include="UniversalLoginModule.cs" />
     <Compile Include="VersionTagger.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +119,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="StrongName.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
