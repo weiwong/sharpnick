@@ -96,7 +96,14 @@ namespace SharpNick
 							_Urls[replacement] = entry.Url;
 
 							/// monitor the file for changes
-							if (string.IsNullOrEmpty(entry.Version)) WatchFile(entry.Url);
+							try
+							{
+								if (string.IsNullOrEmpty(entry.Version)) WatchFile(entry.Url);
+							}
+							catch (Exception ex)
+							{
+								Logging.LogError(ex);
+							}
 						}
 					}
 
