@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Threading;
 using System.Web;
+using System.Web.Hosting;
 
 namespace SharpNick
 {
@@ -136,13 +138,14 @@ namespace SharpNick
 			{
 				if (context != null && error != null)
 				{
-					int code = error is HttpException ? ((HttpException)error).GetHttpCode() : 500;
-					HttpRequest request = context.Request;
-					string sessionID = context.Session == null ? null : context.Session.SessionID;
-					string referrer = request.UrlReferrer == null ? null : request.UrlReferrer.ToString();
+					var code = error is HttpException ? ((HttpException)error).GetHttpCode() : 500;
+					var request = context.Request;
+					var location = request == null || request.Url == null ? null : request.Url.ToString();
+					var sessionID = context.Session == null ? null : context.Session.SessionID;
+					var userHostAddress = request == null ? null : request.UserHostAddress;
+					var referrer = request == null || request.UrlReferrer == null ? null : request.UrlReferrer.ToString();
 
-					LogError(code, request.Url.ToString(), error, context.Session.SessionID,
-						request.UserHostAddress, referrer);
+					LogError(code, location, error, sessionID, userHostAddress, referrer);
 				}
 			}
 			catch (Exception ex)
@@ -580,12 +583,39 @@ namespace SharpNick
 			throw new ConfigurationErrorsException("Log connection could not be created. Did you set the SharpNick.LogConnection connection string properly?");
 		}
 		/// <summary>
-		/// Every kind of logging is failing; dump the exception details to the console as a last resort.
+		/// Every kind of logging is failing; dump the exception details to a file or console as a last resort.
 		/// </summary>
 		/// <param name="ex"></param>
 		private static void LogLastDitchError(Exception ex)
 		{
+			if (HostingEnvironment.ApplicationPhysicalPath != null)
+			{
+				try
+				{
+					LogToAppData(ex);
+				}
+				catch (Exception ex1)
+				{
+					LogToConsole(ex1);
+				}
+			}
+
+			LogToConsole(ex);
+		}
+
+		private static void LogToConsole(Exception ex)
+		{
 			Console.WriteLine(ex.ToString());
+		}
+
+		private static void LogToAppData(Exception ex)
+		{
+			var path = HostingEnvironment.MapPath("~/App_Data/error.log");
+			using (var stream = new FileStream(path, FileMode.Append))
+			using (var writer = new StreamWriter(stream))
+			{
+				writer.WriteLine("{0}{2}Stack trace:{2}{1}{2}{2}", ex.Message, ex.StackTrace, Environment.NewLine);
+			}
 		}
 	}
 	/// <summary>
