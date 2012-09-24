@@ -2,6 +2,7 @@
 
 namespace SharpNick
 {
+	[Serializable]
 	public class MailingAddress : IEquatable<MailingAddress>
 	{
 		/// <summary>
@@ -62,6 +63,13 @@ namespace SharpNick
 			input = input.Trim();
 			if (input.Length == 0) return string.Empty;
 			return input.ConsolidateSpaces().ToLower();
+		}
+		public static bool IsEmpty(MailingAddress address)
+		{
+			if (address == null) return true;
+			return string.IsNullOrEmpty(address.Street1) && string.IsNullOrEmpty(address.Street2) &&
+				string.IsNullOrEmpty(address.City) && string.IsNullOrEmpty(address.State)
+				&& string.IsNullOrEmpty(address.Country) && string.IsNullOrEmpty(address.Postcode);
 		}
 	}
 }
