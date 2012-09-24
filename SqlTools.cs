@@ -200,32 +200,69 @@ namespace SharpNick
 
 			return result;
 		}
-
+		/// <summary>
+		/// Creates an instance of a DateTime DbParameter provided the DbCommand, parameter name and parameter value.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, DateTime value)
 		{
 			return CreateParameter(cmd, name, value, DbType.DateTime);
 		}
-
+		/// <summary>
+		/// Creates an instance of a string DbParameter provided the DbCommand, parameter name and parameter value.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, string value)
 		{
 			return CreateParameter(cmd, name, value, DbType.String);
 		}
+		/// <summary>
+		/// Creates an instance of a generic DbParameter provided the DbCommand, parameter name and parameter value.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, object value)
 		{
 			var stringValue = value == null ? null : value.ToString();
 			return CreateParameter(cmd, name, value, DbType.String);
 		}
-
+		/// <summary>
+		/// Creates an instance of a Int32 DbParameter provided the DbCommand, parameter name and parameter value.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, int value)
 		{
 			return CreateParameter(cmd, name, value, DbType.Int32);
 		}
-
+		/// <summary>
+		/// Creates an instance of a boolean DbParameter provided the DbCommand, parameter name and parameter value.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, bool value)
 		{
 			return CreateParameter(cmd, name, value, DbType.Boolean);
 		}
-
+		/// <summary>
+		/// Creates an instance of a DbParameter provided the DbCommand, parameter name and parameter type.
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="name"></param>
+		/// <param name="dbType"></param>
+		/// <returns></returns>
 		public static DbParameter CreateParameter(this DbCommand cmd, string name, DbType dbType)
 		{
 			return CreateParameter(cmd, name, null, dbType);

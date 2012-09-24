@@ -28,7 +28,7 @@ namespace SharpNick
 
 			if (request.Url.AbsolutePath == "/universal-logout")
 			{
-				/// request logout
+				// request logout
 				var cookie = request.Cookies[Config.CookieName];
 				if (cookie != null)
 				{
@@ -40,7 +40,7 @@ namespace SharpNick
 			}
 			if (request.HttpMethod == "POST" && request.Form["action"] == "universallogin")
 			{
-				/// request login
+				// request login
 				if (request.Form["password"] == Config.Password)
 				{
 					var cookie = new HttpCookie(Config.CookieName, Config.CookieAuthValue);
@@ -87,26 +87,41 @@ namespace SharpNick
 	/// </summary>
 	public class UniversalLoginConfig : ConfigurationElement
 	{
+		/// <summary>
+		/// Gets the name to use for the cookie authenticating a request.
+		/// </summary>
 		[ConfigurationProperty("cookieName", DefaultValue = "UnLogAuth")]
 		public string CookieName
 		{
 			get { return (string)this["cookieName"]; }
 		}
+		/// <summary>
+		/// Gets the value that the authentication cookie must match in order to authenticate a request.
+		/// </summary>
 		[ConfigurationProperty("cookieAuthValue", IsRequired = true)]
 		public string CookieAuthValue
 		{
 			get { return (string)this["cookieAuthValue"]; }
 		}
+		/// <summary>
+		/// Gets the password to match in order to authenticate a request.
+		/// </summary>
 		[ConfigurationProperty("password", IsRequired = true)]
 		public string Password
 		{
 			get { return (string)this["password"]; }
 		}
+		/// <summary>
+		/// Gets the number of days the authentication cookie will live for.
+		/// </summary>
 		[ConfigurationProperty("validDays", DefaultValue = 365)]
 		public int ValidDays
 		{
 			get { return (int)this["validDays"]; }
 		}
+		/// <summary>
+		/// Gets the value that determines whether this module is enabled.
+		/// </summary>
 		[ConfigurationProperty("enable", DefaultValue = true)]
 		public bool Enable
 		{

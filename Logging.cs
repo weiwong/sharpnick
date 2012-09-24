@@ -92,14 +92,13 @@ namespace SharpNick
 		/// <param name="e"></param>
 		static void CurrentDomain_DomainUnload(object sender, EventArgs e)
 		{
-			/// flush out any remaining caches
+			// flush out any remaining caches
 			LogUserSteps();
 		}
 		/// <summary>
 		/// Method to handle user step timer firing event.
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
+		/// <param name="state"></param>
 		private static void UserStepsTimer_Elapsed(object state)
 		{
 			LogUserSteps();
@@ -117,6 +116,11 @@ namespace SharpNick
 		}
 
 		#region LogErrors
+		/// <summary>
+		/// Logs an error message given an instance of HttpContext.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="message"></param>
 		public static void LogError(HttpContext context, string message)
 		{
 			LogError(context, new Exception(message));
@@ -162,6 +166,11 @@ namespace SharpNick
 				LogLastDitchError(ex);
 			}
 		}
+		/// <summary>
+		/// Logs an error given a location and a description of the error.
+		/// </summary>
+		/// <param name="location"></param>
+		/// <param name="error"></param>
 		public static void LogError(string location, string error)
 		{
 			try
@@ -173,7 +182,10 @@ namespace SharpNick
 				LogLastDitchError(ex);
 			}
 		}
-
+		/// <summary>
+		/// Logs an error given an exception.
+		/// </summary>
+		/// <param name="ex"></param>
 		public static void LogError(Exception ex)
 		{
 			try
@@ -301,7 +313,8 @@ namespace SharpNick
 		/// <summary>
 		/// Logs errors committed by users for internal reviewing.
 		/// </summary>
-		/// <param name="errorMessages"></param>
+		/// <param name="errorsAndValues"></param>
+		/// <param name="location"></param>
 		public static void LogUserErrors(string location, Dictionary<string,string> errorsAndValues)
 		{
 			var conn = GetLogConnection();
@@ -358,7 +371,7 @@ namespace SharpNick
 		/// <returns></returns>
 		private static DbConnection GetLogConnection()
 		{
-			/// verify existence of connection string
+			// verify existence of connection string
 			if (string.IsNullOrEmpty(LogConnectionString))
 			{
 				var message = string.Format("Cannot log because of missing connection string '{0}' in the configuration file.", ConnectionStringName);
@@ -366,7 +379,7 @@ namespace SharpNick
 				else return null;
 			}
 
-			/// create connection factory if needed
+			// create connection factory if needed
 			if (ConnectionFactory == null)
 			lock (ConnectionFactoryInstatiationLock)
 			if (ConnectionFactory == null)
@@ -375,7 +388,7 @@ namespace SharpNick
 				ConnectionFactory = DbProviderFactories.GetFactory(providerName);
 			}
 
-			/// return the connection created using the connection factory
+			// return the connection created using the connection factory
 			var result = ConnectionFactory.CreateConnection();
 			result.ConnectionString = LogConnectionString;
 			return result;
@@ -385,6 +398,7 @@ namespace SharpNick
 		/// </summary>
 		/// <param name="term"></param>
 		/// <param name="numResults"></param>
+		/// <param name="context"></param>
 		public static void LogSearch(string term, int numResults, HttpContext context)
 		{
 			var conn = GetLogConnection();
@@ -521,8 +535,8 @@ namespace SharpNick
 
 			var cmd = conn.CreateCommand();
 
-			/// set the exclusion flag to true if the browser contains a Google Analytics
-			/// exclusion cookie. also get the referrer URL, if available
+			// set the exclusion flag to true if the browser contains a Google Analytics
+			// exclusion cookie. also get the referrer URL, if available
 			var excludeCookie = context.Request.Cookies[_ExcludeCookieName];
 			var exclude = excludeCookie != null && excludeCookie.Value != null && excludeCookie.Value.Contains(_ExcludeCookieValue);
 
@@ -539,7 +553,7 @@ namespace SharpNick
 
 				try
 				{
-					/// make sure that there isn't already a session ID like the one we're inserting
+					// make sure that there isn't already a session ID like the one we're inserting
 					cmd.CommandText = "SELECT COUNT(*) FROM UserSessions WHERE sessionID=?sessionID";
 					var result = cmd.ExecuteScalar();
 

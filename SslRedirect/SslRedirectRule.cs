@@ -39,8 +39,8 @@ namespace SharpNick.SslRedirect
 		{
 			SecurityType = config.SecurityType;
 
-			/// if expression is regular expression, save the matching as a regex object and compile it
-			/// otherwise simply store the string
+			// if expression is regular expression, save the matching as a regex object and compile it
+			// otherwise simply store the string
 			if (config.IsRegex)
 			{
 				_RegexMatchExpression = new Regex(config.MatchExpression,
@@ -48,7 +48,7 @@ namespace SharpNick.SslRedirect
 			}
 			else
 			{
-				/// make sure that the match expressions starts with /
+				// make sure that the match expressions starts with /
 				string matchExpression = config.MatchExpression;
 				if (!matchExpression.StartsWith("/")) matchExpression = "/" + matchExpression;
 
@@ -62,8 +62,8 @@ namespace SharpNick.SslRedirect
 		/// <returns></returns>
 		public bool IsMatch(string path)
 		{
-			/// if mode is regex, _RegexMatchExpression is not null and will be used for evaluating
-			/// the path. otherwise a simple string comparison is performed.
+			// if mode is regex, _RegexMatchExpression is not null and will be used for evaluating
+			// the path. otherwise a simple string comparison is performed.
 			if (_RegexMatchExpression == null) return string.Compare(path, _StringMatchExpression, true) == 0;
 			return _RegexMatchExpression.IsMatch(path);
 		}

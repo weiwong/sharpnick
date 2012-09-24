@@ -50,7 +50,6 @@ namespace SharpNick.PingMachine
 		/// <summary>
 		/// Initializes the module.
 		/// </summary>
-		/// <param name="context"></param>
 		public static void Start()
 		{
 			if (_Started) return;
@@ -58,7 +57,7 @@ namespace SharpNick.PingMachine
 			{
 				if (_Started) return;
 
-				/// get the configuration
+				// get the configuration
 				var config = SharpNickConfiguration.GetConfig();
 
 				if (config == null || config.PingMachineConfig == null)
@@ -66,11 +65,11 @@ namespace SharpNick.PingMachine
 					throw new ConfigurationErrorsException("Pinger was not able to find configuration settings.");
 				}
 
-				/// assign simple configuration values
+				// assign simple configuration values
 				_PingTimeOut = config.PingMachineConfig.PingTimeOut;
 				_PingInterval = config.PingMachineConfig.PingInterval;
 
-				/// add credentials to the cache
+				// add credentials to the cache
 				_Credentials = new CredentialCache();
 				foreach (PingMachineCredential credential in config.PingMachineConfig.Credentials)
 				{
@@ -84,10 +83,10 @@ namespace SharpNick.PingMachine
 					_Credentials.Add(new Uri(credential.Url), "Basic", networkCredential);
 				}
 
-				/// put the rules into the static variable
+				// put the rules into the static variable
 				_PingUrls = config.PingMachineConfig.Urls.Cast<PingMachineUrl>().Select(n => n.Url).ToArray();
 
-				/// start the ping timer
+				// start the ping timer
 				if (!_Started)
 				{
 					var interval = _PingInterval * 60 * 1000;
@@ -95,7 +94,7 @@ namespace SharpNick.PingMachine
 					_Timer = new Timer(callback, null, 0, interval);
 				}
 
-				/// bind unload event to shut down pinger
+				// bind unload event to shut down pinger
 				if (_DomainUnloadEventHandler == null)
 				{
 					_DomainUnloadEventHandler = new EventHandler(CurrentDomain_DomainUnload);

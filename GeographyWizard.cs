@@ -76,19 +76,19 @@ namespace SharpNick
         /// </summary>
         private static void Load()
         {
-			/// get the connection string from the configuration file
+			// get the connection string from the configuration file
 			var connectionString = ConfigurationManager.ConnectionStrings[ConnectionStringName];
             if (connectionString == null) throw new ConfigurationErrorsException(
 				string.Format("Connection string for \"{0}\" is not set. Connection string must be defined to use GeographyWizard.", ConnectionStringName));
 
-			/// get the connection factory specified in the connection string and instantiate
-			/// several private variables
+			// get the connection factory specified in the connection string and instantiate
+			// several private variables
 			var factory = DbProviderFactories.GetFactory(connectionString.ProviderName);
             StateSpellings = new Dictionary<string, string>();
             CountrySpellings = new Dictionary<string, string>();
 			CountryCodeToName = new Dictionary<string, string>();
 
-			/// load up all tables
+			// load up all tables
             using (var conn = factory.CreateConnection())
             {
 				conn.ConnectionString = connectionString.ConnectionString;
@@ -105,7 +105,7 @@ namespace SharpNick
 		/// Loads a key-value pair returned by a SQL statement into a Dictionary.
 		/// </summary>
 		/// <param name="conn">The connection to perform the SQL statement against.</param>
-		/// <param name="p"></param>
+		/// <param name="sql"></param>
 		/// <param name="targetTable"></param>
 		private static void LoadTableBasic(DbConnection conn, string sql, Dictionary<string, string> targetTable)
 		{
@@ -145,13 +145,13 @@ namespace SharpNick
 
 					targetTable.Add(name, code);
 
-					/// add code itself to the list of parsable names
+					// add code itself to the list of parsable names
 					if (!codes.Contains(code))
 						codes.Add(code.ToLower(CultureUS));
 				}
 			}
 
-            /// add the postal list of codes to the table
+            // add the postal list of codes to the table
             foreach (var code in codes)
             {
                 string dump;
@@ -179,7 +179,7 @@ namespace SharpNick
             string result;
             if (StateSpellings.TryGetValue(input, out result)) return result;
 
-            /// final attempt by comparing first few values
+            // final attempt by comparing first few values
             foreach (string key in StateSpellings.Keys)
             {
                 if (key.StartsWith(input)) return StateSpellings[key];
@@ -207,7 +207,7 @@ namespace SharpNick
             string result;
             if (CountrySpellings.TryGetValue(input, out result)) return result;
 
-            /// final attempt by comparing first few values
+            // final attempt by comparing first few values
             foreach (var key in CountrySpellings.Keys)
             {
                 if (key.StartsWith(input)) return CountrySpellings[key];
@@ -218,7 +218,7 @@ namespace SharpNick
         /// <summary>
         /// Gets the two-letter country code by state.
         /// </summary>
-        /// <param name="countryCode"></param>
+		/// <param name="state"></param>
         /// <returns></returns>
         public static string GetCountryCodeByState(string state)
         {
@@ -394,8 +394,8 @@ namespace SharpNick
 			country = country.ToUpper(CultureUS);
 			if (country != "US" && country != "CA") return false;
 
-			/// is a postal box if address is "box" followed by
-			/// an optional "#" and then a series of digits
+			// is a postal box if address is "box" followed by
+			// an optional "#" and then a series of digits
 			return Regex.IsMatch(street, @"\bbox *#? *\d+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		}
     }

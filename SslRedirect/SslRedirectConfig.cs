@@ -43,7 +43,7 @@ namespace SharpNick.SslRedirect
 	/// &lt;/ssl&gt;
 	/// </code>
 	/// </example>
-	/// <seealso cref="SslModule"/>
+	/// <seealso cref="SslRedirectModule"/>
 	public class SslRedirectConfig : ConfigurationElement
 	{
 		/// <summary>
