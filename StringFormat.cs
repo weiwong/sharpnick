@@ -35,7 +35,7 @@ namespace SharpNick
 		/// <summary>
 		/// Gets the name of the category optimized for URL.
 		/// </summary>
-		/// <param name="categoryName"></param>
+		/// <param name="input"></param>
 		/// <returns></returns>
 		public static string GetUrlFriendlyString(this string input)
 		{
@@ -48,7 +48,7 @@ namespace SharpNick
 			result = result.Replace("'", "");
 			result = ReplaceSymbols(result, "-");
 
-			/// replace any two consecutive dashes with one dash
+			// replace any two consecutive dashes with one dash
 			while (result.IndexOf("--") > -1)
 			{
 				result = result.Replace("--", "-");
@@ -77,6 +77,7 @@ namespace SharpNick
 		/// </summary>
 		/// <param name="input"></param>
 		/// <param name="replacement"></param>
+		/// <param name="ignoreSpaces"></param>
 		/// <returns></returns>
 		public static string ReplaceSymbols(this string input, string replacement, bool ignoreSpaces)
 		{
@@ -109,14 +110,14 @@ namespace SharpNick
 		{
 			string sanitized = FilterNonDigits(input);
 
-			/// if length is not 9, cannot format; return string as is
+			// if length is not 9, cannot format; return string as is
 			if (sanitized.Length < 10) return input;
 
-			/// if length is 10 or more, format it into (xxx) yyy-zzzz format
+			// if length is 10 or more, format it into (xxx) yyy-zzzz format
 			string result = string.Format("({0}) {1}-{2}", sanitized.Substring(0, 3),
 				sanitized.Substring(3, 3), sanitized.Substring(6, 4));
 
-			/// add the rest of the numbers as extension
+			// add the rest of the numbers as extension
 			if (sanitized.Length > 10) result += " x " + sanitized.Substring(10);
 
 			return result;
@@ -124,8 +125,7 @@ namespace SharpNick
 		/// <summary>
 		/// Formats a string into card number format, delimited by spaces.
 		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="type">Optional. Specifies the card type to format the input to.</param>
+		/// <param name="input">Optional. Specifies the card type to format the input to.</param>
 		/// <returns></returns>
 		public static string FormatCreditCardNumber(this string input)
 		{
@@ -133,7 +133,7 @@ namespace SharpNick
 
 			if (input.Length == 15)
 			{
-				/// format Amex
+				// format Amex
 				return string.Format("{0} {1} {2}", sanitized.Substring(0, 4),
 					sanitized.Substring(4, 6), sanitized.Substring(10));
 			}
@@ -205,10 +205,10 @@ namespace SharpNick
 
 			string output = input.ToUpper();
 
-			/// remove french accents
+			// remove french accents
 			output = NeutralizeAccents(output);
 
-			/// keep only alphabets, numbers and spaces
+			// keep only alphabets, numbers and spaces
 			output = Regex.Replace(output, "[^A-Z0-9 ]", "");
 
 			return output;
@@ -283,7 +283,7 @@ namespace SharpNick
 		/// </summary>
 		/// <remarks>Based on http://www.codeproject.com/KB/string/fastestcscaseinsstringrep.aspx </remarks>
 		/// <param name="original"></param>
-		/// <param name="pattern"></param>
+		/// <param name="search"></param>
 		/// <param name="replacement"></param>
 		/// <returns></returns>
 		public static string ReplaceIgnoreCase(this string original, string search, string replacement)
@@ -334,11 +334,12 @@ namespace SharpNick
 		/// <summary>
 		/// Formats an address.
 		/// </summary>
-		/// <param name="address"></param>
+		/// <param name="street1"></param>
+		/// <param name="country"></param>
 		/// <param name="city"></param>
 		/// <param name="state"></param>
-		/// <param name="zip"></param>
-		/// <param name="countryCode"></param>
+		/// <param name="postcode"></param>
+		/// <param name="street2"></param>
 		/// <returns></returns>
 		public static string FormatAddress(string street1, string street2, string city, string state, string postcode, string country)
 		{
@@ -373,7 +374,7 @@ namespace SharpNick
 		/// Gets the first few setences of a string.
 		/// </summary>
 		/// <param name="input"></param>
-		/// <param name="number"></param>
+		/// <param name="numberOfSentences"></param>
 		/// <returns></returns>
 		public static string GetFirstSentence(this string input, int numberOfSentences)
 		{
@@ -384,11 +385,11 @@ namespace SharpNick
 			int count = 0;
 			while (index <= input.Length)
 			{
-				/// find the first period after the last period found
+				// find the first period after the last period found
 				index = input.IndexOfAny(new char[] { '.', '!', '?' }, index + 1);
 				if (index == -1) break;
 
-				/// test to see if the period is just an abbreviation
+				// test to see if the period is just an abbreviation
 				string test = input.Substring(index - 2, 2).ToLower();
 				if (test == "oz" || test == "dr" || test == "fl") continue;
 

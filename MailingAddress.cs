@@ -2,6 +2,9 @@
 
 namespace SharpNick
 {
+	/// <summary>
+	/// Holds information about a mailing address.
+	/// </summary>
 	[Serializable]
 	public class MailingAddress : IEquatable<MailingAddress>
 	{
@@ -64,6 +67,11 @@ namespace SharpNick
 			if (input.Length == 0) return string.Empty;
 			return input.ConsolidateSpaces().ToLower();
 		}
+		/// <summary>
+		/// Determines whether this MailingAddress instance has a value in any of its properties.
+		/// </summary>
+		/// <param name="address"></param>
+		/// <returns></returns>
 		public static bool IsEmpty(MailingAddress address)
 		{
 			if (address == null) return true;

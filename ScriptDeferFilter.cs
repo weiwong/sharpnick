@@ -47,7 +47,10 @@ namespace SharpNick
 		/// If this is true, then it means a script tag started, but did not end
 		/// </summary>
 		bool scriptTagStarted = false;
-
+		/// <summary>
+		/// Creates a new instance of ScriptDeferFilter.
+		/// </summary>
+		/// <param name="response"></param>
 		public ScriptDeferFilter(HttpResponse response)
 		{
 			this.encoding = response.Output.Encoding;
@@ -60,21 +63,30 @@ namespace SharpNick
 		}
 
 		#region Filter overrides
+		/// <summary>
+		/// Gets the value that determines whether this stream can be read.
+		/// </summary>
 		public override bool CanRead
 		{
 			get { return false; }
 		}
-
+		/// <summary>
+		/// Gets the value that determines whether this stream can be randomly sought.
+		/// </summary>
 		public override bool CanSeek
 		{
 			get { return false; }
 		}
-
+		/// <summary>
+		/// Gets the value that determines whether this stream can be written.
+		/// </summary>
 		public override bool CanWrite
 		{
 			get { return true; }
 		}
-
+		/// <summary>
+		/// Closes this stream.
+		/// </summary>
 		public override void Close()
 		{
 			this.FlushPendingBuffer();
@@ -83,7 +95,7 @@ namespace SharpNick
 
 		private void FlushPendingBuffer()
 		{
-			/// Some characters were left in the buffer 
+			// Some characters were left in the buffer 
 			if (null != this.pendingBuffer)
 			{
 				this.WriteOutput(this.pendingBuffer, 0, this.pendingBuffer.Length);
@@ -91,40 +103,65 @@ namespace SharpNick
 			}
 
 		}
-
+		/// <summary>
+		/// Flushes the buffer.
+		/// </summary>
 		public override void Flush()
 		{
 			this.FlushPendingBuffer();
 			responseStream.Flush();
 		}
-
+		/// <summary>
+		/// Gets the length of this stream.
+		/// </summary>
 		public override long Length
 		{
 			get { return 0; }
 		}
-
+		/// <summary>
+		/// Gets or sets the current position of this stream.
+		/// </summary>
 		public override long Position
 		{
 			get { return position; }
 			set { position = value; }
 		}
-
+		/// <summary>
+		/// Skip to a specific byte in the stream.
+		/// </summary>
+		/// <param name="offset"></param>
+		/// <param name="origin"></param>
+		/// <returns></returns>
 		public override long Seek(long offset, SeekOrigin origin)
 		{
 			return responseStream.Seek(offset, origin);
 		}
-
+		/// <summary>
+		/// Sets the length of this stream.
+		/// </summary>
+		/// <param name="value"></param>
 		public override void SetLength(long value)
 		{
 			responseStream.SetLength(value);
 		}
-
+		/// <summary>
+		/// Reads a set number of bytes from the stream.
+		/// </summary>
+		/// <param name="buffer"></param>
+		/// <param name="offset"></param>
+		/// <param name="count"></param>
+		/// <returns></returns>
 		public override int Read(byte[] buffer, int offset, int count)
 		{
 			return responseStream.Read(buffer, offset, count);
 		}
 		#endregion
-
+		/// <summary>
+		/// Write to the stream.
+		/// </summary>
+		/// <param name="buffer"></param>
+		/// <param name="offset"></param>
+		/// <param name="count"></param>
 		public override void Write(byte[] buffer, int offset, int count)
 		{
 			// If we are not capturing script blocks anymore, just redirect to response stream
@@ -154,8 +191,8 @@ namespace SharpNick
 			char[] content;
 			char[] charBuffer = this.encoding.GetChars(buffer, offset, count);
 
-			/// If some bytes were left for processing during last Write call
-			/// then consider those into the current buffer
+			// If some bytes were left for processing during last Write call
+			// then consider those into the current buffer
 			if (null != this.pendingBuffer)
 			{
 				content = new char[charBuffer.Length + this.pendingBuffer.Length];
@@ -225,9 +262,9 @@ namespace SharpNick
 							}
 							else
 							{
-								/// Script tag just ended. Two scenarios can happend:
-								/// This can be a partial buffer where the script beginning tag is not present
-								/// This can be a partial buffer of a pinned script tag
+								// Script tag just ended. Two scenarios can happend:
+								// This can be a partial buffer where the script beginning tag is not present
+								// This can be a partial buffer of a pinned script tag
 								pos = pos + "script>".Length;
 
 								scriptBlocks.Append(content, scriptTagStart, pos - scriptTagStart);
@@ -243,8 +280,8 @@ namespace SharpNick
 						}
 						else if (IsBodyTag(content, pos))
 						{
-							/// body tag has just end. Time for rendering all the script
-							/// blocks we have suppressed so far and stop capturing script blocks
+							// body tag has just end. Time for rendering all the script
+							// blocks we have suppressed so far and stop capturing script blocks
 
 							if (this.scriptBlocks.Length > 0)
 							{
@@ -289,9 +326,9 @@ namespace SharpNick
 
 							if (!this.lastScriptTagIsPinned)
 							{
-								/// Script tag started. Record the position as we will 
-								/// capture the whole script tag including its content
-								/// and store in an internal buffer.
+								// Script tag started. Record the position as we will 
+								// capture the whole script tag including its content
+								// and store in an internal buffer.
 								scriptTagStart = pos;
 
 								// Write html content since last script tag closing upto this script tag 
@@ -333,7 +370,7 @@ namespace SharpNick
 			}
 			else
 			{
-				/// Render the characters since the last script tag ending
+				// Render the characters since the last script tag ending
 				this.WriteOutput(content, lastScriptTagEnd, pos - lastScriptTagEnd);
 			}
 		}

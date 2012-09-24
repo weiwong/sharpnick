@@ -79,15 +79,15 @@ namespace SharpNick
 
 					foreach (VersionTaggerEntry entry in config.VersionTaggerConfig.Entries)
 					{
-						/// get the version of the file
+						// get the version of the file
 						var version = GetVersion(entry);
 						Logging.Trace("Version is " + version, "VersionTagger");
 
-						/// if the version is valid for this file
+						// if the version is valid for this file
 						if (!string.IsNullOrEmpty(version))
 						{
-							/// get the mapping for the before and after conversion, and vice
-							/// versa, in two different hash tables
+							// get the mapping for the before and after conversion, and vice
+							// versa, in two different hash tables
 							var extension = entry.Url.Substring(entry.Url.LastIndexOf('.') + 1);
 							var replacement = string.Format("{0}{1}.{2}",
 								entry.Url.Remove(entry.Url.Length - extension.Length), version, extension);
@@ -95,7 +95,7 @@ namespace SharpNick
 							_Versions[entry.Url] = replacement;
 							_Urls[replacement] = entry.Url;
 
-							/// monitor the file for changes
+							// monitor the file for changes
 							try
 							{
 								if (string.IsNullOrEmpty(entry.Version)) WatchFile(entry.Url);
@@ -107,7 +107,7 @@ namespace SharpNick
 						}
 					}
 
-					/// clean up this class when the application shuts down
+					// clean up this class when the application shuts down
 					AppDomain.CurrentDomain.DomainUnload += new EventHandler(CurrentDomain_DomainUnload);
 				}
 				else
@@ -165,12 +165,12 @@ namespace SharpNick
 		/// <returns></returns>
 		private static string GetVersion(VersionTaggerEntry entry)
 		{
-			/// try to get the version number from the configuration, if available
+			// try to get the version number from the configuration, if available
 			var filePath = HostingEnvironment.MapPath(entry.Url);
 			if (!File.Exists(filePath)) throw new ConfigurationErrorsException(filePath + " cannot be found");
 			if (!string.IsNullOrEmpty(entry.Version)) return entry.Version;
 
-			/// otherwise, get the hash code for the file
+			// otherwise, get the hash code for the file
 			byte[] fileContents;
 			var fileLength = (int)(new FileInfo(filePath).Length);
 
@@ -195,53 +195,81 @@ namespace SharpNick
 		}
 
 		#region Filter overrides
+		/// <summary>
+		/// Gets the value that determines whether this stream can be read.
+		/// </summary>
 		public override bool CanRead
 		{
 			get { return false; }
 		}
-
+		/// <summary>
+		/// Gets the value that determines whether this stream can be randomly sought.
+		/// </summary>
 		public override bool CanSeek
 		{
 			get { return false; }
 		}
-
+		/// <summary>
+		/// Gets the value that determines whether this stream can be written.
+		/// </summary>
 		public override bool CanWrite
 		{
 			get { return true; }
 		}
-
+		/// <summary>
+		/// Closes this stream.
+		/// </summary>
 		public override void Close()
 		{
 			_ResponseStream.Close();
 		}
-
+		/// <summary>
+		/// Gets or sets the seek position of this stream.
+		/// </summary>
 		public override long Position
 		{
 			get { return _Position; }
 			set { _Position = value; }
 		}
-
+		/// <summary>
+		/// Flushes this stream.
+		/// </summary>
 		public override void Flush()
 		{
-			//this.FlushPendingBuffer();
 			_ResponseStream.Flush();
 		}
-
+		/// <summary>
+		/// Gets the length of this stream.
+		/// </summary>
 		public override long Length
 		{
 			get { return 0; }
 		}
-
+		/// <summary>
+		/// Set the position within the current stream.
+		/// </summary>
+		/// <param name="offset"></param>
+		/// <param name="origin"></param>
+		/// <returns></returns>
 		public override long Seek(long offset, SeekOrigin origin)
 		{
 			return _ResponseStream.Seek(offset, origin);
 		}
-
+		/// <summary>
+		/// Sets the length of the current stream.
+		/// </summary>
+		/// <param name="value"></param>
 		public override void SetLength(long value)
 		{
 			_ResponseStream.SetLength(value);
 		}
-
+		/// <summary>
+		/// Reads a sequence of bytes from the current stream.
+		/// </summary>
+		/// <param name="buffer"></param>
+		/// <param name="offset"></param>
+		/// <param name="count"></param>
+		/// <returns></returns>
 		public override int Read(byte[] buffer, int offset, int count)
 		{
 			return _ResponseStream.Read(buffer, offset, count);
@@ -256,7 +284,7 @@ namespace SharpNick
 		/// <param name="count"></param>
 		public override void Write(byte[] buffer, int offset, int count)
 		{
-			/// if there is nothing to check, just redirect the stream
+			// if there is nothing to check, just redirect the stream
 			if (_Versions.Count == 0)
 			{
 				_ResponseStream.Write(buffer, offset, count);
@@ -269,8 +297,8 @@ namespace SharpNick
 			{
 				string extension = url.Substring(url.LastIndexOf('.') + 1);
 
-				/// use different replacement methods for different files
-				/// as their inclusion methods are different
+				// use different replacement methods for different files
+				// as their inclusion methods are different
 				if (string.Compare(extension, "css", true) == 0) html = html.Replace("href=\"" + url + "\"", "href=\"" + _Versions[url] + "\"");
 				else if (string.Compare(extension, "js", true) == 0) html = html.Replace("src=\"" + url + "\"", "src=\"" + _Versions[url] + "\"");
 			}
@@ -384,10 +412,19 @@ namespace SharpNick
 	/// </summary>
 	public class VersionTaggerEntries : ConfigurationElementCollection
 	{
+		/// <summary>
+		/// Creates a new instance of VersionTaggerEntries.
+		/// </summary>
+		/// <returns></returns>
 		protected override ConfigurationElement CreateNewElement()
 		{
 			return new VersionTaggerEntry();
 		}
+		/// <summary>
+		/// Gets the key that represents this element uniquely.
+		/// </summary>
+		/// <param name="element"></param>
+		/// <returns></returns>
 		protected override object GetElementKey(ConfigurationElement element)
 		{
 			return element;

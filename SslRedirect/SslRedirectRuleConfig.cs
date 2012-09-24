@@ -38,10 +38,19 @@ namespace SharpNick.SslRedirect
 	/// </summary>
 	public class SslRedirectRuleConfigCollection : ConfigurationElementCollection
 	{
+		/// <summary>
+		/// Creates a new instance of SslRedirectRuleConfigCollection.
+		/// </summary>
+		/// <returns></returns>
 		protected override ConfigurationElement CreateNewElement()
 		{
 			return new SslRedirectRuleConfig();
 		}
+		/// <summary>
+		/// Gets the value of the matching key.
+		/// </summary>
+		/// <param name="element"></param>
+		/// <returns></returns>
 		protected override object GetElementKey(ConfigurationElement element)
 		{
 			return element;

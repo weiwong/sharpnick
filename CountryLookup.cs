@@ -139,14 +139,14 @@ namespace SharpNick
 					Logging.LogError("CountryLookup", ex);
 				}
 
-				/// bind event to close file
+				// bind event to close file
 				if (_DomainUnloadEventHandler == null)
 				{
 					_DomainUnloadEventHandler = new EventHandler(CurrentDomain_DomainUnload);
 					AppDomain.CurrentDomain.DomainUnload += _DomainUnloadEventHandler;
 				}
 
-				/// start timer to update the file
+				// start timer to update the file
 				if (_UpdateTimer == null && _LicenseKey != null)
 				{
 					var update = new TimerCallback(delegate(object state)
@@ -161,7 +161,7 @@ namespace SharpNick
 						}
 					});
 
-					/// check every day at 7am
+					// check every day at 7am
 					var now = DateTime.Now;
 					var start = new DateTime(now.Year, now.Month, now.Day, 7, 0, 0);
 					if (start <= now) start = start.AddDays(1);
@@ -169,7 +169,7 @@ namespace SharpNick
 
 					_UpdateTimer = new Timer(update, null, due, 24 * 60 * 60 * 1000);
 
-					/// check in one minute if the normal check doesn't start in 5 minutes
+					// check in one minute if the normal check doesn't start in 5 minutes
 					if (!newFile && due > 5 * 60 * 1000) new Timer(update, null, 60 * 1000, Timeout.Infinite);
 
 					try
@@ -220,7 +220,7 @@ namespace SharpNick
 		/// </summary>
 		private static void OpenFile()
 		{
-			/// open database file
+			// open database file
 			try
 			{
 				string countryLookupFileName = Path.Combine(_StorePath, _DBFileName);
@@ -292,7 +292,7 @@ namespace SharpNick
 		/// <summary>
 		/// Gets the country name corrresponding to the specified IPAddress instance.
 		/// </summary>
-		/// <param name="ip"></param>
+		/// <param name="addr"></param>
 		/// <returns></returns>
 		public static string GetCountryName(IPAddress addr)
 		{
@@ -375,15 +375,15 @@ namespace SharpNick
         /// </summary>
         private static void UpdateDB()
         {
-			/// quit if no license key available
+			// quit if no license key available
 			if (string.IsNullOrEmpty(_LicenseKey))
 			{
 				Logging.Trace("Cannot update database file because license key is not set.", "CountryLookup", "CountryLookup");
 				return;
 			}
 
-			/// maxmind requires a request made to their server with a license key and
-			/// the MD5 hash of the current database file
+			// maxmind requires a request made to their server with a license key and
+			// the MD5 hash of the current database file
 			var existingFile = Path.Combine(_StorePath, _DBFileName);
 			var fileMd5 = GetMD5HashFromFile(existingFile);
             var versionFileUrl = string.Format("http://www.maxmind.com/app/update?license_key={0}&md5={1}", _LicenseKey, fileMd5);
@@ -397,15 +397,15 @@ namespace SharpNick
 				result = client.DownloadData(versionFileUrl);
             }
 
-			/// maxmind returns a string if there are no new updates. if there
-			/// are, replace the current file with the newly downloaded version
+			// maxmind returns a string if there are no new updates. if there
+			// are, replace the current file with the newly downloaded version
             if (result.Length > 27 || Encoding.ASCII.GetString(result) != "No new updates available\n")
 			{
 				try { Logging.Trace("Updating file", "CountryLookup", _AppDirectory); }
 				catch (Exception ex) { Logging.LogError("CountryLookup", ex); }
 
-				/// write the downloaded byte array into a file, first
-				/// decompressing it
+				// write the downloaded byte array into a file, first
+				// decompressing it
 				var newFilePath = Path.Combine(_StorePath, _TempDBFileName);
                 using (var fInStream = new MemoryStream(result))
                 using (var zipStream = new GZipStream(fInStream, CompressionMode.Decompress))
@@ -419,7 +419,7 @@ namespace SharpNick
                     }
                 }
 
-				/// replace the old file with the new
+				// replace the old file with the new
                 lock (_DatabaseFileLock)
                 {
 					try

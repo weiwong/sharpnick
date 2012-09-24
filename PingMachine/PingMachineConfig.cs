@@ -71,10 +71,19 @@ namespace SharpNick.PingMachine
 	/// </summary>
 	public class PingMachineUrlCollection : ConfigurationElementCollection
 	{
+		/// <summary>
+		/// Creates a new instance of PingMachineUrlCollection.
+		/// </summary>
+		/// <returns></returns>
 		protected override ConfigurationElement CreateNewElement()
 		{
 			return new PingMachineUrl();
 		}
+		/// <summary>
+		/// Gets the key of this element.
+		/// </summary>
+		/// <param name="element"></param>
+		/// <returns></returns>
 		protected override object GetElementKey(ConfigurationElement element)
 		{
 			return element;
@@ -115,10 +124,19 @@ namespace SharpNick.PingMachine
 	/// </summary>
 	public class PingMachineCredentialCollection : ConfigurationElementCollection
 	{
+		/// <summary>
+		/// Crates a new instance of PingMachineCredentialCollection.
+		/// </summary>
+		/// <returns></returns>
 		protected override ConfigurationElement CreateNewElement()
 		{
 			return new PingMachineCredential();
 		}
+		/// <summary>
+		/// Gets the key that represents this element.
+		/// </summary>
+		/// <param name="element"></param>
+		/// <returns></returns>
 		protected override object GetElementKey(ConfigurationElement element)
 		{
 			return element;

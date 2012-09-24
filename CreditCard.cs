@@ -40,6 +40,9 @@ namespace SharpNick
 		/// Sum table to faciliate the Luhn algorithm calculations.
 		/// </summary>
 		private static readonly int[][] LuhnSumTable = { new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[] { 0, 2, 4, 6, 8, 1, 3, 5, 7, 9 } };
+		/// <summary>
+		/// Creates a new instance of a credit card.
+		/// </summary>
 		public CreditCard() { }
 		/// <summary>
 		/// Determine the type of a credit card given a credit card number.
@@ -82,7 +85,7 @@ namespace SharpNick
 		/// <summary>
 		/// Returns the friendly name of the specified credit card number.
 		/// </summary>
-		/// <param name="p"></param>
+		/// <param name="cardNumber"></param>
 		/// <returns></returns>
 		public static string GetCardTypeName(string cardNumber)
 		{
