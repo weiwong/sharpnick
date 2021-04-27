@@ -4,6 +4,9 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
 using System.Web.Hosting;
@@ -63,9 +66,19 @@ namespace SharpNick
 		private static bool _ThrowException;
 		private static string _ExcludeCookieName;
 		private static string _ExcludeCookieValue;
-		#endregion
+        #endregion
 
-		private const string ConnectionStringName = "SharpNick.LogConnection";
+        #region Constants and the like
+        private const string ConnectionStringName = "SharpNick.LogConnection";
+		/// <summary>
+		/// Regular expression to validate IPv4.
+		/// </summary>
+		private static readonly Regex _Ipv4Regex = new Regex(@"^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$", RegexOptions.Compiled);
+		/// <summary>
+		/// Regular expression to validate IPv6.
+		/// </summary>
+		private static readonly Regex _Ipv6Regex = new Regex(@"^\[?([0-9a-f:]+)\]?(:\d+)?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		#endregion
 
 		/// <summary>
 		/// Initializes this class by tying the DomainUload event to the flush function.
@@ -142,8 +155,32 @@ namespace SharpNick
 					var request = context.Request;
 					var location = request == null || request.Url == null ? null : request.Url.ToString();
 					var sessionID = context.Session == null ? null : context.Session.SessionID;
-					var userHostAddress = request == null ? null : request.UserHostAddress;
 					var referrer = request == null || request.UrlReferrer == null ? null : request.UrlReferrer.ToString();
+
+					// try to get IP address from the forwarded header
+					string userHostAddress = null;
+					if (request != null)
+                    {
+						// go through all headers to find one that resembles x-forwarded-for, case insensitive, then get the exact casing
+						// to get the value from the headers collection
+						var headerKey = request.Headers.AllKeys.FirstOrDefault(n => n.Equals("X-Forwarded-For", StringComparison.CurrentCultureIgnoreCase));
+						if (headerKey != null && !string.IsNullOrEmpty(request.Headers[headerKey]))
+						{
+							// get the first IP in the list, then make sure to extract the portion that matches the validation regex
+							var candidate = request.Headers[headerKey].Split(',')[0].Trim();
+							if (_Ipv4Regex.IsMatch(candidate))
+								candidate = _Ipv4Regex.Replace(candidate, "$1");
+							else if (_Ipv6Regex.IsMatch(candidate))
+								candidate = _Ipv6Regex.Replace(candidate, "$1");
+
+							// final validation
+							if (IPAddress.TryParse(candidate, out IPAddress ipAddress))
+								userHostAddress = ipAddress.ToString();
+
+						}
+						else
+							userHostAddress = request.UserHostAddress;
+					}
 
 					LogError(code, location, error, sessionID, userHostAddress, referrer);
 				}
